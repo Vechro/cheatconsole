@@ -184,7 +184,7 @@ Citizen.CreateThread(function() -- teleport to waypoint
     local height = 1000.0
     local playerPed = PlayerPedId()
 	while true do
-		Citizen.Wait(5)
+	Citizen.Wait(5)
         if waypoint then
             if IsPedInAnyVehicle(playerPed, false) and (GetPedInVehicleSeat(GetVehiclePedIsIn(playerPed, false), -1) == playerPed) then
                 entity = GetVehiclePedIsIn(playerPed, false)

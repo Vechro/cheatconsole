@@ -1,13 +1,8 @@
 Citizen.CreateThread(function()
 
-    local function KeyboardInput(textentry, exampletext, maxstringlength)
-
-        -- textentry        -->  the text above the typing field in the black square (str)
-        -- exampletext      -->  an example text, what it should say in the typing field (str)
-        -- maxstringlength  -->  maximum string length (int)
-
+    local function KeyboardInput(textentry, maxstringlength)
         AddTextEntry('FMMC_KEY_TIP1', textentry)
-        DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", exampletext, "", "", "", maxstringlength)
+        DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "", "", "", "", maxstringlength)
         blockInput = true
     
         while UpdateOnscreenKeyboard() ~= 1 and UpdateOnscreenKeyboard() ~= 2 do
@@ -31,15 +26,15 @@ Citizen.CreateThread(function()
         SetNotificationTextEntry("STRING")
         AddTextComponentString(text)
         DrawNotification(false, false)
-        print(text) -- also print in the console for recordkeeping
+        print(text)
     end
 
     local function teleportOnGround(ped, x, y) -- teleport to waypoint
         Citizen.CreateThread(function()
             local zTestHeight = 0.0
-            local height = 990.0
+            local height = 1000.0
             while true do
-            Citizen.Wait(5)
+            Wait(5)
 
                 if IsPedInAnyVehicle(ped, false) and (GetPedInVehicleSeat(GetVehiclePedIsIn(ped, false), -1) == ped) then
                     entity = GetVehiclePedIsIn(ped, false)
@@ -48,13 +43,13 @@ Citizen.CreateThread(function()
                 end
 
                 while not RequestCollisionAtCoord(x + 0.0, y + 0.0, height) do 
-                    Citizen.Wait(5)
+                    Wait(5)
                 end
 
                 if zTestHeight == 0.0 then
-                    height = height - 30.0
+                    height = height - 40.0
                     while not RequestCollisionAtCoord(x + 0.0, y + 0.0, height) do 
-                        Citizen.Wait(5)
+                        Wait(5)
                     end
                     result, zTestHeight = GetGroundZFor_3dCoord(x + 0.0, y + 0.0, height + 0.0, Citizen.ReturnResultAnyway())
                 else
@@ -66,7 +61,7 @@ Citizen.CreateThread(function()
         end)
     end
     
-    local function UpgradeVehicle(vehicle)
+    local function upgradeVehicle(vehicle)
         local class = GetVehicleClass(vehicle)
         SetVehicleModKit(vehicle, 0) -- enable vehicle modding
         SetVehicleMod(vehicle, 11, 4) -- engine
@@ -80,16 +75,35 @@ Citizen.CreateThread(function()
         end
     end
 
-    local statTable = {"MP0_STAMINA", "MP0_STRENGTH", "MP0_LUNG_CAPACITY", "MP0_WHEELIE_ABILITY", "MP0_FLYING_ABILITY", "MP0_SHOOTING_ABILITY", "MP0_STEALTH_ABILITY",}
+    local function validateComponents(weapon, componentTable) -- expects first value in table to be a weapon and last to be ammo count (but should manage fine without ammo count)
+        -- local weapon = GetHashKey(componentTable[1])
+        table.remove(componentTable, 1) -- could check if first value is a valid weapon but unnecessary in use case
+        if type(tonumber(componentTable[#componentTable])) == "number" then
+            table.remove(componentTable) -- removes last value off table
+        end
+        local correctComponents = {}
+        for _, component in ipairs(componentTable) do
+            if DoesWeaponTakeWeaponComponent(weapon, GetHashKey(component)) then
+                table.insert(correctComponents, GetHashKey(component))
+            end
+        end
+        return correctComponents
+    end
 
-    local gadgets = {parachute = true, nightvision = true, gadget_parachute = true, gadget_nightvision = true}
+    local function giveComponents(ped, weaponHash, componentTable) -- to be added to the if-statement
+        for _, component in ipairs(componentTable) do
+            GiveWeaponComponentToPed(ped, weaponHash, component)
+        end
+    end
+
+    local statTable = {"MP0_STAMINA", "MP0_STRENGTH", "MP0_LUNG_CAPACITY", "MP0_WHEELIE_ABILITY", "MP0_FLYING_ABILITY", "MP0_SHOOTING_ABILITY", "MP0_STEALTH_ABILITY",}
 
     local splitTable = {}
     while true do
         Wait(0)
         if IsControlPressed(1, 21) and IsControlPressed(1, 38) and IsControlPressed(1, 249) then -- shift + e + n
 
-            local command = KeyboardInput("Enter command", "", 32)
+            local command = KeyboardInput("Enter command", 320)
 
             if command then
                 for word in command:gmatch("[^%s]+") do -- magic
@@ -97,7 +111,7 @@ Citizen.CreateThread(function()
                 end
 
                 local first, second, third = table.unpack(splitTable)
-
+                -- print("Table entries: " .. tostring(first) .. " & " .. tostring(second) .. " & " .. tostring(third))
                 local playerPed = PlayerPedId()
 
                 if tonumber(first) and tonumber(second) and tonumber(third) then
@@ -109,10 +123,19 @@ Citizen.CreateThread(function()
                     SetEntityCoords(entity, tonumber(first) + 0.0, tonumber(second) + 0.0, tonumber(third) + 0.0, true, false, false, true)
                     ShowNotification("Teleported to X: " .. first .. "; Y: " .. second .. "; Z: " .. third)
 
+                -- elseif first == "invincible" -- for peeps (with toggle)
+
+                -- elseif first == "indestructible" -- for jeeps (with toggle)
+
+                elseif tonumber(first) and tonumber(first) < 6 and tonumber(first) >= 0 then
+                    SetPlayerWantedLevel(playerPed, first, false)
+                    SetPlayerWantedLevelNow(playerPed, false)
+                    ShowNotification("Wanted level set to " .. first .. " stars")
+
                 elseif first == "upgrade" then
                     if IsPedInAnyVehicle(playerPed, false) then
                         local model = GetVehiclePedIsIn(playerPed, false)
-                        UpgradeVehicle(model)
+                        upgradeVehicle(model)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(model))) .. " upgraded")
                         ShowNotification(GetDisplayNameFromVehicleModel(GetEntityModel(model)) .. " upgraded")
                     else
@@ -128,7 +151,7 @@ Citizen.CreateThread(function()
                     end
                     ShowNotification("All stats maxed out")
 
-                elseif first == "check" and second == "stats" then
+                elseif first == "stats" then -- totally unnecessary
                     for index, stat in ipairs(statTable) do
                         local _, statValue = StatGetInt(GetHashKey(stat), -1, -1)
                         print(stat .. ": " .. statValue)
@@ -144,24 +167,37 @@ Citizen.CreateThread(function()
                         ShowNotification("You're not in a vehicle")
                     end
 
-                elseif first == "remove" then
-                    if second and IsWeaponValid(GetHashKey(second)) then
-                        RemoveWeaponFromPed(playerPed, GetHashKey(second))
-                        ShowNotification(second .. " removed")
-                    elseif second and IsWeaponValid(GetHashKey("weapon_" .. second)) then
-                        RemoveWeaponFromPed(playerPed, GetHashKey("weapon_" .. second))
-                        ShowNotification("weapon_" .. second .. " removed")
-                    elseif not second then
+                elseif first == "remove" and second and ((second == "all" or second == "current") or IsWeaponValid(GetHashKey(second)) or IsWeaponValid(GetHashKey("weapon_" .. second))) then
+                    if second == "all" then
+                        RemoveAllPedWeapons(playerPed, true)
+                        ShowNotification("All weapons removed")
+
+                    elseif second == "current" then
                         local _, currentWeapon = GetCurrentPedWeapon(playerPed)
                         RemoveWeaponFromPed(playerPed, currentWeapon, true)
                         ShowNotification("Current weapon removed")
-                    else
-                        ShowNotification("Unknown weapon")
+
+                    elseif IsWeaponValid(GetHashKey(second)) then
+                        RemoveWeaponFromPed(playerPed, GetHashKey(second))
+                        ShowNotification(second .. " removed")
+
+                    elseif IsWeaponValid(GetHashKey("weapon_" .. second)) then
+                        RemoveWeaponFromPed(playerPed, GetHashKey("weapon_" .. second))
+                        ShowNotification("weapon_" .. second .. " removed")
                     end
 
-                elseif first == "remove" and second == "all" and third == "weapons" then
-                    RemoveAllPedWeapons(playerPed, true)
-                    ShowNotification("All weapons removed")
+                elseif first == "flip" then
+                    if IsPedInAnyVehicle(playerPed, false) then
+                        local vehicle = GetVehiclePedIsIn(playerPed, false)
+                        local flipped = SetVehicleOnGroundProperly(vehicle)
+                        if flipped then
+                            ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))) .. " flipped")
+                        else
+                            ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))) .. " failed to be flipped")
+                        end
+                    else
+                        ShowNotification("You're not in a vehicle")
+                    end
 
                 elseif first == "waypoint" then
                     local WaypointHandle = GetFirstBlipInfoId(8)
@@ -191,13 +227,12 @@ Citizen.CreateThread(function()
                         end
                         local vehicle = CreateVehicle(model, coord.x, coord.y, coord.z, GetEntityHeading(playerPed), true, true)
                         SetPedIntoVehicle(playerPed, vehicle, -1)
-                        UpgradeVehicle(vehicle)
+                        upgradeVehicle(vehicle)
                         SetEntityAsNoLongerNeeded(vehicle)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(model)) .. " spawned")
 
                     elseif first and (IsWeaponValid(GetHashKey(first)) or IsWeaponValid(GetHashKey("weapon_" .. first)) or IsWeaponValid(GetHashKey("gadget_" .. first))) then
-
-                        if gadgets[first] then
+                        if first == "parachute" or first == "nightvision" or first == "gadget_parachute" or first == "gadget_nightvision" then
                             if IsWeaponValid(GetHashKey(first)) then
                                 GiveWeaponToPed(playerPed, first, 1, false, false)
                                 ShowNotification(first .. " given")
@@ -205,22 +240,29 @@ Citizen.CreateThread(function()
                                 GiveWeaponToPed(playerPed, "gadget_" .. first, 1, false, false)
                                 ShowNotification("gadget_" .. first .. " given")
                             end
-
                         else
-                            if IsWeaponValid(GetHashKey(first)) then
-                                GiveWeaponToPed(playerPed, first, tonumber(second) or 9999, false, false)
-                                if second and tonumber(second) < 0 then
-                                    ShowNotification(first .. " given with infinite ammo")
-                                else
-                                    ShowNotification((tonumber(second) and "" .. first .. " given with " .. second .. " ammo") or first .. " given")
+                            local ammo = tonumber(splitTable[#splitTable]) or 9999
+                            if ammo then
+                                if ammo > 9999 then -- let's not allow extreme numbers
+                                    ammo = 9999
+                                elseif ammo < -1 then
+                                    ammo = -1
                                 end
+                            end
+                            if not IsWeaponValid(GetHashKey(first)) then
+                                first = "weapon_" .. first
+                                weapon = GetHashKey(first)
+                            end
+                            GiveWeaponToPed(playerPed, weapon, ammo, false, false)
+                            local correctComponents = validateComponents(weapon, splitTable)
+                            giveComponents(playerPed, weapon, correctComponents)
+                            if GetAmmoInPedWeapon(playerPed, weapon) >= 0 and ammo ~= 0 then
+                                AddAmmoToPed(playerPed, weapon, ammo)
+                            end
+                            if ammo == -1 then
+                                ShowNotification(first .. " given with infinite ammo")
                             else
-                                GiveWeaponToPed(playerPed, "weapon_" .. first, tonumber(second) or 9999, false, false)
-                                if second and tonumber(second) < 0 then
-                                    ShowNotification("weapon_" .. first .. " given with infinite ammo")
-                                else
-                                    ShowNotification((tonumber(second) and "weapon_" .. first .. " given with " .. second .. " ammo") or "weapon_" .. first .. " given")
-                                end
+                                ShowNotification(first .. " given with " .. ammo .. " ammo")
                             end
                         end
 

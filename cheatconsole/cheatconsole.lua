@@ -1,6 +1,6 @@
-Citizen.CreateThread(function() -- testing sourcetree
+Citizen.CreateThread(function()
 
-    local function KeyboardInput(textentry, maxstringlength)
+    local function keyboardInput(textentry, maxstringlength)
         AddTextEntry('FMMC_KEY_TIP1', textentry)
         DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "", "", "", "", maxstringlength)
         blockInput = true
@@ -75,11 +75,10 @@ Citizen.CreateThread(function() -- testing sourcetree
         end
     end
 
-    local function validateComponents(weapon, componentTable) -- expects first value in table to be a weapon and last to be ammo count (but should manage fine without ammo count)
-        -- local weapon = GetHashKey(componentTable[1])
+    local function validateComponents(weapon, componentTable) -- expects first value in table to be a weapon and last to be ammo count (but should manage fine without ammo count), should make it so "component_" can be omitted
         table.remove(componentTable, 1) -- could check if first value is a valid weapon but unnecessary in use case
         if type(tonumber(componentTable[#componentTable])) == "number" then
-            table.remove(componentTable) -- removes last value off table
+            table.remove(componentTable)
         end
         local correctComponents = {}
         for _, component in ipairs(componentTable) do
@@ -90,7 +89,7 @@ Citizen.CreateThread(function() -- testing sourcetree
         return correctComponents
     end
 
-    local function giveComponents(ped, weaponHash, componentTable) -- to be added to the if-statement
+    local function giveComponents(ped, weaponHash, componentTable)
         for _, component in ipairs(componentTable) do
             GiveWeaponComponentToPed(ped, weaponHash, component)
         end
@@ -103,7 +102,7 @@ Citizen.CreateThread(function() -- testing sourcetree
         Wait(0)
         if IsControlPressed(1, 21) and IsControlPressed(1, 38) and IsControlPressed(1, 249) then -- shift + e + n
 
-            local command = KeyboardInput("Enter command", 320)
+            local command = keyboardInput("Enter command", 800) -- should check the limits
 
             if command then
                 for word in command:gmatch("[^%s]+") do -- magic
@@ -127,10 +126,10 @@ Citizen.CreateThread(function() -- testing sourcetree
 
                 -- elseif first == "indestructible" -- for jeeps (with toggle)
 
-                elseif tonumber(first) and tonumber(first) < 6 and tonumber(first) >= 0 then
+                elseif tonumber(first) and tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars" then -- make it work with "1 star" too
                     SetPlayerWantedLevel(playerPed, first, false)
                     SetPlayerWantedLevelNow(playerPed, false)
-                    ShowNotification("Wanted level set to " .. first .. " stars")
+                    ShowNotification("Wanted level set to " .. first .. " star(s)")
 
                 elseif first == "upgrade" then
                     if IsPedInAnyVehicle(playerPed, false) then
@@ -174,7 +173,7 @@ Citizen.CreateThread(function() -- testing sourcetree
 
                     elseif second == "current" then
                         local _, currentWeapon = GetCurrentPedWeapon(playerPed)
-                        RemoveWeaponFromPed(playerPed, currentWeapon, true)
+                        RemoveWeaponFromPed(playerPed, GetHashKey(currentWeapon), true)
                         ShowNotification("Current weapon removed")
 
                     elseif IsWeaponValid(GetHashKey(second)) then
@@ -213,6 +212,7 @@ Citizen.CreateThread(function() -- testing sourcetree
                     ShowNotification(("You're at X: %.4f; Y: %.4f; Z: %.4f"):format(coord.x, coord.y, coord.z))
 
                 else
+                    -- local _, currentWeapon = GetCurrentPedWeapon(playerPed) -- fucking stupid to define it here but it does work
                     if IsModelValid(GetHashKey(first)) then
                         local model = GetHashKey(first)
                         local coord = GetEntityCoords(playerPed, true)
@@ -231,6 +231,17 @@ Citizen.CreateThread(function() -- testing sourcetree
                         SetEntityAsNoLongerNeeded(vehicle)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(model)) .. " spawned")
 
+                    -- elseif DoesWeaponTakeWeaponComponent(currentWeapon, GetHashKey(first)) then
+                    elseif DoesWeaponTakeWeaponComponent(({GetCurrentPedWeapon(playerPed)})[2], GetHashKey(first)) then -- untested
+                        local _, currentWeapon = GetCurrentPedWeapon(playerPed)
+                        local ammo = GetAmmoInPedWeapon(playerPed, weapon)
+                        local correctComponents = validateComponents(currentWeapon, splitTable)
+                        giveComponents(playerPed, currentWeapon, correctComponents)
+                        if ammo ~= GetAmmoInPedWeapon(playerPed, weapon) then
+                            SetPedAmmo(playerPed, currentWeapon, ammo)
+                        end
+                        ShowNotification("Weapon components attached to current weapon")
+                    
                     elseif first and (IsWeaponValid(GetHashKey(first)) or IsWeaponValid(GetHashKey("weapon_" .. first)) or IsWeaponValid(GetHashKey("gadget_" .. first))) then
                         if first == "parachute" or first == "nightvision" or first == "gadget_parachute" or first == "gadget_nightvision" then
                             if IsWeaponValid(GetHashKey(first)) then
@@ -257,7 +268,7 @@ Citizen.CreateThread(function() -- testing sourcetree
                             local correctComponents = validateComponents(weapon, splitTable)
                             giveComponents(playerPed, weapon, correctComponents)
                             if GetAmmoInPedWeapon(playerPed, weapon) >= 0 and ammo ~= 0 then
-                                AddAmmoToPed(playerPed, weapon, ammo)
+                                SetPedAmmo(playerPed, weapon, ammo)
                             end
                             if ammo == -1 then
                                 ShowNotification(first .. " given with infinite ammo")

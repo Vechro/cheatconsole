@@ -102,7 +102,7 @@ Citizen.CreateThread(function()
         Wait(0)
         if IsControlPressed(1, 21) and IsControlPressed(1, 38) and IsControlPressed(1, 249) then -- shift + e + n
 
-            local command = keyboardInput("Enter command", 800) -- should check the limits
+            local command = keyboardInput("Enter command", 800) -- should check the limits of the text box
 
             if command then
                 for word in command:gmatch("[^%s]+") do -- magic
@@ -212,7 +212,7 @@ Citizen.CreateThread(function()
                     ShowNotification(("You're at X: %.4f; Y: %.4f; Z: %.4f"):format(coord.x, coord.y, coord.z))
 
                 else
-                    -- local _, currentWeapon = GetCurrentPedWeapon(playerPed) -- fucking stupid to define it here but it does work
+                    -- local _, currentWeapon = GetCurrentPedWeapon(playerPed)
                     if IsModelValid(GetHashKey(first)) then
                         local model = GetHashKey(first)
                         local coord = GetEntityCoords(playerPed, true)
@@ -254,7 +254,7 @@ Citizen.CreateThread(function()
                         else
                             local ammo = tonumber(splitTable[#splitTable]) or 9999
                             if ammo then
-                                if ammo > 9999 then -- let's not allow extreme numbers
+                                if ammo > 9999 then
                                     ammo = 9999
                                 elseif ammo < -1 then
                                     ammo = -1

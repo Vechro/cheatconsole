@@ -104,7 +104,7 @@ Citizen.CreateThread(function()
         Wait(0)
         if IsControlPressed(1, 21) and IsControlPressed(1, 38) and IsControlPressed(1, 249) then -- shift + e + n
 
-            local command = keyboardInput("Enter command", 800) -- should check the limits of the text box
+            local command = keyboardInput("Enter command", 320)
 
             if command then
                 string.lower(command)
@@ -171,17 +171,16 @@ Citizen.CreateThread(function()
 
                 elseif first == "timecycle" then
                     if second then
+                        local strength = tonumber(third) or 1.00
                         SetTimecycleModifier(second)
-                        SetTimecycleModifierStrength(0.95)
-                        PushTimecycleModifier()
-                        ShowNotification("Timecycle set to " .. second)
+                        SetTimecycleModifierStrength(strength + 0.0)
+                        ShowNotification("Timecycle set to " .. second .. "with a strength of " .. strength)
                     else
                         ClearTimecycleModifier()
                         ShowNotification("Timecycle cleared")
                     end
 
-
-                elseif tonumber(first) and (tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars") or (tonumber(first) == 1 and second == "star") then -- make it work with "1 star" too
+                elseif tonumber(first) and (tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars") or (tonumber(first) == 1 and second == "star") then
                     SetPlayerWantedLevel(playerID,  tonumber(first), false)
                     SetPlayerWantedLevelNow(playerID, false)
                     ShowNotification("Wanted level set to " .. first .. " star(s)")
@@ -206,7 +205,7 @@ Citizen.CreateThread(function()
                     SetEntityMaxHealth(playerPed, 200)
                     ShowNotification("All stats maxed out")
 
-                elseif first == "stats" then -- totally unnecessary
+                elseif first == "stats" then
                     for index, stat in ipairs(statTable) do
                         local _, statValue = StatGetInt(GetHashKey(stat), -1, -1)
                         print(stat .. ": " .. statValue)
@@ -287,8 +286,7 @@ Citizen.CreateThread(function()
                         SetEntityAsNoLongerNeeded(vehicle)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(model)) .. " spawned")
 
-                    -- elseif DoesWeaponTakeWeaponComponent(currentWeapon, GetHashKey(first)) then
-                    elseif DoesWeaponTakeWeaponComponent(({GetCurrentPedWeapon(playerPed)})[2], GetHashKey(first)) then -- untested, maybe check the whole table
+                    elseif DoesWeaponTakeWeaponComponent(({GetCurrentPedWeapon(playerPed)})[2], GetHashKey(first)) then
                         print(({GetCurrentPedWeapon(playerPed)})[2])
                         local _, currentWeapon = GetCurrentPedWeapon(playerPed)
                         print(currentWeapon)

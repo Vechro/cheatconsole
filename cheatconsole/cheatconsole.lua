@@ -107,7 +107,7 @@ Citizen.CreateThread(function()
             local command = keyboardInput("Enter command", 320)
 
             if command then
-                string.lower(command)
+                command = string.lower(command)
                 for word in command:gmatch("[^%s]+") do -- magic
                     table.insert(splitTable, word)
                 end
@@ -267,7 +267,6 @@ Citizen.CreateThread(function()
                     ShowNotification(("You're at X: %.4f; Y: %.4f; Z: %.4f"):format(coord.x, coord.y, coord.z))
 
                 else
-                    -- local _, currentWeapon = GetCurrentPedWeapon(playerPed)
                     if IsModelValid(GetHashKey(first)) then
                         local model = GetHashKey(first)
                         local coord = GetEntityCoords(playerPed, true)

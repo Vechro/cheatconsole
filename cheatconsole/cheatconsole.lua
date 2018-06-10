@@ -127,8 +127,6 @@ Citizen.CreateThread(function()
                     ShowNotification("Teleported to X: " .. first .. "; Y: " .. second .. "; Z: " .. third)
 
                 elseif first == "invincible" then
-                    local test = GetPlayerInvincible(playerID)
-                    print(tostring(test))
                     if not GetPlayerInvincible(playerID) then
                         SetEntityInvincible(playerPed, true)
                         SetPlayerInvincible(playerID, true)
@@ -146,9 +144,21 @@ Citizen.CreateThread(function()
                         SetEntityCanBeDamaged(playerPed, true)
                         ShowNotification("You're no longer invincible")
                     end
-
-                -- elseif first == "indestructible" -- for jeeps (with toggle)
-
+--[[
+                elseif first == "indestructible" then
+                    if 
+                    SetVehicleCanBeVisiblyDamaged(vehicle, true)
+                    SetVehicleTyresCanBurst(vehicle, true)
+                    SetEntityInvincible(vehicle, false)
+                    SetEntityProofs(vehicle, false, false, false, false, false, false, false, false)
+                    SetVehicleWheelsCanBreak(vehicle, true)
+                    SetVehicleExplodesOnHighExplosionDamage(vehicle, true)
+                    SetEntityOnlyDamagedByPlayer(vehicle, true)
+                    SetEntityCanBeDamaged(vehicle, true)
+                    -- SetVehicleStrong(vehicle, true)
+                    -- SetVehiclePetrolTankHealth(vehicle, 1000.0)
+                    -- SetVehicleHasStrongAxles(vehicle, true)
+]]
                 elseif first == "heal" then
                     SetEntityHealth(playerPed, 200)
                     ClearPedBloodDamage(playerPed)
@@ -158,6 +168,18 @@ Citizen.CreateThread(function()
                 elseif first == "armor" then
                     AddArmourToPed(playerPed, 100)
                     ShowNotification("You've been given armor")
+
+                elseif first == "timecycle" then
+                    if second then
+                        SetTimecycleModifier(second)
+                        SetTimecycleModifierStrength(0.95)
+                        PushTimecycleModifier()
+                        ShowNotification("Timecycle set to " .. second)
+                    else
+                        ClearTimecycleModifier()
+                        ShowNotification("Timecycle cleared")
+                    end
+
 
                 elseif tonumber(first) and (tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars") or (tonumber(first) == 1 and second == "star") then -- make it work with "1 star" too
                     SetPlayerWantedLevel(playerID,  tonumber(first), false)

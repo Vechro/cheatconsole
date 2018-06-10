@@ -76,7 +76,9 @@ Citizen.CreateThread(function()
     end
 
     local function validateComponents(weapon, componentTable) -- expects first value in table to be a weapon and last to be ammo count (but should manage fine without ammo count), should make it so "component_" can be omitted
-        table.remove(componentTable, 1) -- could check if first value is a valid weapon but unnecessary in use case
+        if IsWeaponValid(GetHashKey(componentTable[1])) or IsWeaponValid(GetHashKey(componentTable[1])) then
+            table.remove(componentTable, 1)
+        end
         if type(tonumber(componentTable[#componentTable])) == "number" then
             table.remove(componentTable)
         end
@@ -113,6 +115,7 @@ Citizen.CreateThread(function()
                 local first, second, third = table.unpack(splitTable)
                 -- print("Table entries: " .. tostring(first) .. " & " .. tostring(second) .. " & " .. tostring(third))
                 local playerPed = PlayerPedId()
+                local playerID = PlayerId()
 
                 if tonumber(first) and tonumber(second) and tonumber(third) then
                     if IsPedInAnyVehicle(playerPed, false) and (GetPedInVehicleSeat(GetVehiclePedIsIn(playerPed, false), -1) == playerPed) then
@@ -127,9 +130,9 @@ Citizen.CreateThread(function()
 
                 -- elseif first == "indestructible" -- for jeeps (with toggle)
 
-                elseif tonumber(first) and tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars" then -- make it work with "1 star" too
-                    SetPlayerWantedLevel(playerPed, first, false)
-                    SetPlayerWantedLevelNow(playerPed, false)
+                elseif tonumber(first) and (tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars") or (tonumber(first) == 1 and second == "star") then -- make it work with "1 star" too
+                    SetPlayerWantedLevel(playerID,  tonumber(first), false)
+                    SetPlayerWantedLevelNow(playerID, false)
                     ShowNotification("Wanted level set to " .. first .. " star(s)")
 
                 elseif first == "upgrade" then
@@ -174,7 +177,7 @@ Citizen.CreateThread(function()
 
                     elseif second == "current" then
                         local _, currentWeapon = GetCurrentPedWeapon(playerPed)
-                        RemoveWeaponFromPed(playerPed, GetHashKey(currentWeapon), true)
+                        RemoveWeaponFromPed(playerPed, currentWeapon, true)
                         ShowNotification("Current weapon removed")
 
                     elseif IsWeaponValid(GetHashKey(second)) then
@@ -234,12 +237,16 @@ Citizen.CreateThread(function()
 
                     -- elseif DoesWeaponTakeWeaponComponent(currentWeapon, GetHashKey(first)) then
                     elseif DoesWeaponTakeWeaponComponent(({GetCurrentPedWeapon(playerPed)})[2], GetHashKey(first)) then -- untested, maybe check the whole table
+                        print(({GetCurrentPedWeapon(playerPed)})[2])
                         local _, currentWeapon = GetCurrentPedWeapon(playerPed)
+                        print(currentWeapon)
                         local ammo = GetAmmoInPedWeapon(playerPed, weapon)
+                        print(ammo)
                         local correctComponents = validateComponents(currentWeapon, splitTable)
                         giveComponents(playerPed, currentWeapon, correctComponents)
+                        print(GetAmmoInPedWeapon(playerPed, weapon))
                         if ammo ~= GetAmmoInPedWeapon(playerPed, weapon) then
-                            SetPedAmmo(playerPed, currentWeapon, ammo)
+                            AddAmmoToPed(playerPed, currentWeapon, ammo)
                         end
                         ShowNotification("Weapon components attached to current weapon")
                     
@@ -269,7 +276,7 @@ Citizen.CreateThread(function()
                             local correctComponents = validateComponents(weapon, splitTable)
                             giveComponents(playerPed, weapon, correctComponents)
                             if GetAmmoInPedWeapon(playerPed, weapon) >= 0 and ammo ~= 0 then
-                                SetPedAmmo(playerPed, weapon, ammo)
+                                AddAmmoToPed(playerPed, weapon, ammo)
                             end
                             if ammo == -1 then
                                 ShowNotification(first .. " given with infinite ammo")

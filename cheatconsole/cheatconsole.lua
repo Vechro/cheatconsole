@@ -233,7 +233,7 @@ Citizen.CreateThread(function()
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(model)) .. " spawned")
 
                     -- elseif DoesWeaponTakeWeaponComponent(currentWeapon, GetHashKey(first)) then
-                    elseif DoesWeaponTakeWeaponComponent(({GetCurrentPedWeapon(playerPed)})[2], GetHashKey(first)) then -- untested
+                    elseif DoesWeaponTakeWeaponComponent(({GetCurrentPedWeapon(playerPed)})[2], GetHashKey(first)) then -- untested, maybe check the whole table
                         local _, currentWeapon = GetCurrentPedWeapon(playerPed)
                         local ammo = GetAmmoInPedWeapon(playerPed, weapon)
                         local correctComponents = validateComponents(currentWeapon, splitTable)

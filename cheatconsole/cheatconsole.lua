@@ -126,9 +126,38 @@ Citizen.CreateThread(function()
                     SetEntityCoords(entity, tonumber(first) + 0.0, tonumber(second) + 0.0, tonumber(third) + 0.0, true, false, false, true)
                     ShowNotification("Teleported to X: " .. first .. "; Y: " .. second .. "; Z: " .. third)
 
-                -- elseif first == "invincible" -- for peeps (with toggle)
+                elseif first == "invincible" then
+                    local test = GetPlayerInvincible(playerID)
+                    print(tostring(test))
+                    if not GetPlayerInvincible(playerID) then
+                        SetEntityInvincible(playerPed, true)
+                        SetPlayerInvincible(playerID, true)
+                        SetPedCanRagdoll(playerPed, false)
+                        ClearPedBloodDamage(playerPed)
+                        ResetPedVisibleDamage(playerPed)
+                        SetEntityProofs(playerPed, true, true, true, true, true, true, true, true)
+                        SetEntityCanBeDamaged(playerPed, false)
+                        ShowNotification("You're now invincible")
+                    else
+                        SetEntityInvincible(playerPed, false)
+                        SetPlayerInvincible(playerID, false)
+                        SetPedCanRagdoll(playerPed, true)
+                        SetEntityProofs(playerPed, false, false, false, false, false, false, false, false)
+                        SetEntityCanBeDamaged(playerPed, true)
+                        ShowNotification("You're no longer invincible")
+                    end
 
                 -- elseif first == "indestructible" -- for jeeps (with toggle)
+
+                elseif first == "heal" then
+                    SetEntityHealth(playerPed, 200)
+                    ClearPedBloodDamage(playerPed)
+                    ResetPedVisibleDamage(playerPed)
+                    ShowNotification("You've been healed")
+                
+                elseif first == "armor" then
+                    AddArmourToPed(playerPed, 100)
+                    ShowNotification("You've been given armor")
 
                 elseif tonumber(first) and (tonumber(first) < 6 and tonumber(first) >= 0 and second == "stars") or (tonumber(first) == 1 and second == "star") then -- make it work with "1 star" too
                     SetPlayerWantedLevel(playerID,  tonumber(first), false)
@@ -152,6 +181,7 @@ Citizen.CreateThread(function()
                     for index, stat in ipairs(statTable) do
                         StatSetInt(GetHashKey(stat), 100, true)
                     end
+                    SetEntityMaxHealth(playerPed, 200)
                     ShowNotification("All stats maxed out")
 
                 elseif first == "stats" then -- totally unnecessary

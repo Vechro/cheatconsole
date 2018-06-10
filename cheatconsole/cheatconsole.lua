@@ -105,6 +105,7 @@ Citizen.CreateThread(function()
             local command = keyboardInput("Enter command", 800) -- should check the limits of the text box
 
             if command then
+                string.lower(command)
                 for word in command:gmatch("[^%s]+") do -- magic
                     table.insert(splitTable, word)
                 end

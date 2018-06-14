@@ -104,7 +104,7 @@ Citizen.CreateThread(function()
         Wait(0)
         if IsControlPressed(1, 21) and IsControlPressed(1, 38) and IsControlPressed(1, 249) then -- shift + e + n
 
-            local command = keyboardInput("Enter command", 320)
+            local command = KeyboardInput("Enter command", 320)
 
             if command then
                 command = string.lower(command)
@@ -188,7 +188,7 @@ Citizen.CreateThread(function()
                 elseif first == "upgrade" then
                     if IsPedInAnyVehicle(playerPed, false) then
                         local model = GetVehiclePedIsIn(playerPed, false)
-                        upgradeVehicle(model)
+                        UpgradeVehicle(model)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(model))) .. " upgraded")
                         ShowNotification(GetDisplayNameFromVehicleModel(GetEntityModel(model)) .. " upgraded")
                     else
@@ -257,7 +257,7 @@ Citizen.CreateThread(function()
                     local WaypointHandle = GetFirstBlipInfoId(8)
                     if DoesBlipExist(WaypointHandle) then
                         wpcoord = Citizen.InvokeNative(0xFA7C7F0AADF25D09, WaypointHandle, Citizen.ResultAsVector())
-                        teleportOnGround(playerPed, wpcoord.x, wpcoord.y)
+                        TeleportOnGround(playerPed, wpcoord.x, wpcoord.y)
                     else
                         ShowNotification("No waypoint marked")
                     end
@@ -281,7 +281,7 @@ Citizen.CreateThread(function()
                         end
                         local vehicle = CreateVehicle(model, coord.x, coord.y, coord.z, GetEntityHeading(playerPed), true, true)
                         SetPedIntoVehicle(playerPed, vehicle, -1)
-                        upgradeVehicle(vehicle)
+                        UpgradeVehicle(vehicle)
                         SetEntityAsNoLongerNeeded(vehicle)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(model)) .. " spawned")
 
@@ -291,8 +291,8 @@ Citizen.CreateThread(function()
                         print(currentWeapon)
                         local ammo = GetAmmoInPedWeapon(playerPed, weapon)
                         print(ammo)
-                        local correctComponents = validateComponents(currentWeapon, splitTable)
-                        giveComponents(playerPed, currentWeapon, correctComponents)
+                        local correctComponents = ValidateComponents(currentWeapon, splitTable)
+                        GiveComponents(playerPed, currentWeapon, correctComponents)
                         print(GetAmmoInPedWeapon(playerPed, weapon))
                         if ammo ~= GetAmmoInPedWeapon(playerPed, weapon) then
                             AddAmmoToPed(playerPed, currentWeapon, ammo)
@@ -322,8 +322,8 @@ Citizen.CreateThread(function()
                                 weapon = GetHashKey(first)
                             end
                             GiveWeaponToPed(playerPed, weapon, ammo, false, false)
-                            local correctComponents = validateComponents(weapon, splitTable)
-                            giveComponents(playerPed, weapon, correctComponents)
+                            local correctComponents = ValidateComponents(weapon, splitTable)
+                            GiveComponents(playerPed, weapon, correctComponents)
                             if GetAmmoInPedWeapon(playerPed, weapon) >= 0 and ammo ~= 0 then
                                 AddAmmoToPed(playerPed, weapon, ammo)
                             end

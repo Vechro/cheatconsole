@@ -1,6 +1,6 @@
 Citizen.CreateThread(function()
 
-    local function keyboardInput(textentry, maxstringlength)
+    local function KeyboardInput(textentry, maxstringlength)
         AddTextEntry('FMMC_KEY_TIP1', textentry)
         DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "", "", "", "", maxstringlength)
         blockInput = true
@@ -29,7 +29,7 @@ Citizen.CreateThread(function()
         print(text)
     end
 
-    local function teleportOnGround(ped, x, y) -- teleport to waypoint
+    local function TeleportOnGround(ped, x, y) -- teleport to waypoint
         Citizen.CreateThread(function()
             local zTestHeight = 0.0
             local height = 1000.0
@@ -61,7 +61,7 @@ Citizen.CreateThread(function()
         end)
     end
     
-    local function upgradeVehicle(vehicle)
+    local function UpgradeVehicle(vehicle)
         local class = GetVehicleClass(vehicle)
         SetVehicleModKit(vehicle, 0) -- enable vehicle modding
         SetVehicleMod(vehicle, 11, 4) -- engine
@@ -75,7 +75,7 @@ Citizen.CreateThread(function()
         end
     end
 
-    local function validateComponents(weapon, componentTable) -- expects first value in table to be a weapon and last to be ammo count (but should manage fine without ammo count), should make it so "component_" can be omitted
+    local function ValidateComponents(weapon, componentTable) -- expects first value in table to be a weapon and last to be ammo count (but should manage fine without ammo count), should make it so "component_" can be omitted
         if IsWeaponValid(GetHashKey(componentTable[1])) or IsWeaponValid(GetHashKey(componentTable[1])) then
             table.remove(componentTable, 1)
         end
@@ -91,7 +91,7 @@ Citizen.CreateThread(function()
         return correctComponents
     end
 
-    local function giveComponents(ped, weaponHash, componentTable)
+    local function GiveComponents(ped, weaponHash, componentTable)
         for _, component in ipairs(componentTable) do
             GiveWeaponComponentToPed(ped, weaponHash, component)
         end

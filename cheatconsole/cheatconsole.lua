@@ -310,12 +310,10 @@ Citizen.CreateThread(function()
                             end
                         else
                             local ammo = tonumber(splitTable[#splitTable]) or 9999
-                            if ammo then
-                                if ammo > 9999 then
-                                    ammo = 9999
-                                elseif ammo < -1 then
-                                    ammo = -1
-                                end
+                            if ammo > 9999 then
+                                ammo = 9999
+                            elseif ammo < -1 then
+                                ammo = -1
                             end
                             if not IsWeaponValid(GetHashKey(first)) then
                                 first = "weapon_" .. first

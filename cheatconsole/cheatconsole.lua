@@ -190,7 +190,6 @@ Citizen.CreateThread(function()
                         local model = GetVehiclePedIsIn(playerPed, false)
                         UpgradeVehicle(model)
                         ShowNotification(GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(model))) .. " upgraded")
-                        ShowNotification(GetDisplayNameFromVehicleModel(GetEntityModel(model)) .. " upgraded")
                     else
                         ShowNotification("You're not in a vehicle")
                     end
